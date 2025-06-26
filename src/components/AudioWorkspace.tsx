@@ -30,6 +30,31 @@ export interface AudioWorkspaceState {
 }
 
 export function AudioWorkspace() {
+  // Generate sample waveform data for demonstration
+  const generateSampleWaveform = (length: number) => {
+    const data = new Array(Math.floor(length / 100)) // Downsample for display
+    for (let i = 0; i < data.length; i++) {
+      // Create realistic audio waveform patterns
+      const time = i / data.length
+      let amplitude = 0
+      
+      // Add different frequency components
+      amplitude += Math.sin(time * Math.PI * 20) * 0.3 // Low frequency
+      amplitude += Math.sin(time * Math.PI * 100) * 0.2 // Mid frequency  
+      amplitude += Math.sin(time * Math.PI * 300) * 0.1 // High frequency
+      
+      // Add some randomness for realistic look
+      amplitude += (Math.random() - 0.5) * 0.2
+      
+      // Apply envelope (fade in/out)
+      const envelope = Math.sin(time * Math.PI)
+      amplitude *= envelope * 0.8
+      
+      data[i] = Math.max(-1, Math.min(1, amplitude))
+    }
+    return data
+  }
+
   const [state, setState] = useState<AudioWorkspaceState>({
     tracks: [
       {
@@ -73,31 +98,6 @@ export function AudioWorkspace() {
 
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Generate sample waveform data for demonstration
-  const generateSampleWaveform = (length: number) => {
-    const data = new Array(Math.floor(length / 100)) // Downsample for display
-    for (let i = 0; i < data.length; i++) {
-      // Create realistic audio waveform patterns
-      const time = i / data.length
-      let amplitude = 0
-      
-      // Add different frequency components
-      amplitude += Math.sin(time * Math.PI * 20) * 0.3 // Low frequency
-      amplitude += Math.sin(time * Math.PI * 100) * 0.2 // Mid frequency  
-      amplitude += Math.sin(time * Math.PI * 300) * 0.1 // High frequency
-      
-      // Add some randomness for realistic look
-      amplitude += (Math.random() - 0.5) * 0.2
-      
-      // Apply envelope (fade in/out)
-      const envelope = Math.sin(time * Math.PI)
-      amplitude *= envelope * 0.8
-      
-      data[i] = Math.max(-1, Math.min(1, amplitude))
-    }
-    return data
-  }
-
   const updateTrack = useCallback((trackId: string, updates: Partial<Track>) => {
     setState(prev => ({
       ...prev,
@@ -126,7 +126,7 @@ export function AudioWorkspace() {
       tracks: [...prev.tracks, newTrack]
     }))
     toast.success(`Added ${newTrack.name} track`)
-  }, [state.tracks.length])
+  }, [state.tracks.length, generateSampleWaveform])
 
   const deleteTrack = useCallback((trackId: string) => {
     const track = state.tracks.find(t => t.id === trackId)
